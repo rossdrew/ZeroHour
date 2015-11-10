@@ -17,7 +17,8 @@ rallyToTrelloMigration is currently an under development script to migrate all r
  The change is in <i>restapi.py</i> around line 575 where UserProfile is accessed
 
 <code>
- 	            if not mups:
+ 	        if not mups:
+ 	            problem = "unable to find a matching UserProfile record for User: %s  UserProfile: %s"
                 if hasattr(user, 'UserProfile'):
                     problem = problem % (user.DisplayName, user.UserProfile)
                 warning("%s" % problem)
