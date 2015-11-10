@@ -9,3 +9,8 @@ rallyToTrelloMigration is currently an under development script to migrate all r
  - sorts tasks into Rally parent artifacts (Defects, User Stories)
  - figures out an order based on Rally DragAndDropOrder
  - adds each of the Rally parent artifacts as a Trello ticket with the Rally tasks as list items in Trello
+
+
+#Issues
+
+ pyral (1.1.1) doesn't support Python 3 and has an existing bug where retrieving a list of Rally users throws an error (which for some reason we get with every user once before it succeeds), I've added a fix for this on the pyral repo and <a href="https://github.com/RallyTools/RallyRestToolkitForPython/pull/70">submitted a pull request</a> but as it stands, a custom pyral install is required.
