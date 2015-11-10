@@ -10,6 +10,13 @@ rallyToTrelloMigration is currently an under development script to migrate all r
  - figures out an order based on Rally DragAndDropOrder
  - adds each of the Rally parent artifacts as a Trello ticket with the Rally tasks as list items in Trello
 
+#Plans
+
+ Next step is to allow two way-syncing so that changes on one reflect on the other.  This raises the issue of HTML->Markdown and back.  html2text does the first step perfectly but I can't find anything to put it back the way it was, the HTML is always changed.
+
+ Also
+  - Servers, usernames, passwords all need to be passed in as arguments
+  - Code needs to be cleaned and split up and possibly unit tests extended
 
 #Issues
 
@@ -25,3 +32,5 @@ rallyToTrelloMigration is currently an under development script to migrate all r
                 continue
             else:
 </code>
+
+ another issue is that this script is Task-centric, meaning any artifact that has no corresponding tasks, wont be included.
