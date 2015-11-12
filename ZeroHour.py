@@ -13,6 +13,8 @@ from pyral import Rally, rallyWorkset
         ZeroHour Package v0.2
 [Package for linking Rally and Trello]
 
+**** Requires a custom version of Rally ****
+
 TODO : Deal with command line arguments better.  Perhaps a ZeroHourProperties class that holds all the values.
 
 """
