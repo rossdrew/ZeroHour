@@ -65,18 +65,27 @@ def initTrello(cmdLineOptions):
 	trelloApi.set_token(cmdLineOptions['trelloToken'])
 	return trelloApi
 
+def getTrelloBoardsForUser(trelloID, trelloToken, trelloUserName):
+	boards = trello.Members(trelloID, trelloToken).get_board(trelloUserName)
+	return boards
+
 def getTrelloBoard(trelloID, trelloToken, trelloUserName, boardName):
 	"""Return a Trello Board object from Trello server"""
-	boards = trello.Members(trelloID, trelloToken).get_board(trelloUserName)
+	boards = getTrelloBoardsForUser(trelloID, trelloToken, trelloUserName)
 	tBoards = [board for board in boards if board['name'] == boardName]
 	if len(tBoards) < 1:
 		print "ERROR: Trello board '{}' not found.".format(boardName)
 		sys.exit()
 	return tBoards[0]
 
+def getTrelloListsForBoard(trelloID, trelloToken, trelloBoard):
+	lists = trello.Boards(trelloID, trelloToken).get_list(trelloBoard['id'])
+	return lists
+
 def getTrelloList(trelloID, trelloToken, trelloBoard, trelloListName):
 	"""Return a Trello List object from Trello server"""
-	tLists = [list for list in trello.Boards(trelloID, trelloToken).get_list(trelloBoard['id']) if list['name'] == trelloListName]
+	allTrelloLists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
+	tLists = [list for list in allTrelloLists if list['name'] == trelloListName]
 	if len(tLists) < 1:
 		print "ERROR: Trello list '{}' not found.".format(cmdLineOptions['trelloList'])
 		sys.exit()
@@ -158,11 +167,13 @@ def buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard):
 	if DEBUG_OUTPUT: print "Getting Rally tasks in the criteria '{}'".format(inclusionQuery)
 	return inclusionQuery
 
-def buildMigrationList(rally, backupMigrationListToFile, inclusionQuery):
+def getRallyRallyArtifactList(rally, inclusionQuery, migrationFile=""):
 	"""Get all Rally artifacts that match required criteria"""
 	print "Retrieving list of Rally artifacts to migrate..."
 
-	if backupMigrationListToFile: migrationList = open("migration.list", 'w')
+	backupMigrationListToFile = len(migrationFile) > 0
+
+	if backupMigrationListToFile: migrationList = open(migrationFile, 'w')
 
 	openTasks = []
 	response = rally.get('Task', fetch="FormattedID", query=inclusionQuery, order='DragAndDropRank') 	
@@ -170,7 +181,7 @@ def buildMigrationList(rally, backupMigrationListToFile, inclusionQuery):
 	for story in response:
 		openTasks.append(story.FormattedID)
 		if backupMigrationListToFile: migrationList.write("{}\n".format(story.FormattedID))
-		if DEBUG_OUTPUT: print "Added {} to migration list...".format(story.FormattedID)
+		if DEBUG_OUTPUT: print "Added {} to Rally tasks...".format(story.FormattedID)
 
 	print "...{} artifacts collected.".format(len(openTasks))
 	if backupMigrationListToFile: migrationList.close()
@@ -266,3 +277,17 @@ def addTrelloCardWithTasks(card, tasks, trelloID, trelloToken, trelloList, chang
 def addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, trelloList, changeLog):
 	for card in orderedParentCards:
 		addTrelloCardWithTasks(card, trelloCards[card.FormattedID].tasks, trelloID, trelloToken, trelloList, changeLog)
+
+
+def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
+	print "Synching Rally to Trello board {}".format(trelloBoard['name'])
+	#get all Rally tickets 
+	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
+	getRallyRallyArtifactList(rally, artifactQuery, 'rallyArtifact.list')
+	#TODO get all Trello tickets (that's every ticket on a given board, in every list)
+	lists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
+	for list in lists:
+		print "{} - {}".format(list['id'], list['name'])
+	#Compare all details
+	#   TODO "Merge" changes...HOW!?!?
+	#TODO Add Rally Artifacts that dont exist in Trello
