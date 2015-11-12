@@ -15,7 +15,10 @@ from pyral import Rally, rallyWorkset
 
 **** Requires a custom version of pyral ****
 
-TODO : Deal with command line arguments better.  Perhaps a ZeroHourProperties class that holds all the values.
+TODO : Deal with command line arguments better.  
+       Perhaps a ZeroHourProperties class that 
+       holds all the values and move the global 
+       vars in there as well.
 
 """
 
@@ -23,9 +26,6 @@ UNDER_DEVELOPMENT = True
 DEBUG_OUTPUT = True
 
 RALLY_PREFIX 	= re.compile(r'^[A-Z]*[^[0-9]]*')
-
-options = [arg for arg in sys.argv[1:] if arg.startswith('--')]
-args    = [arg for arg in sys.argv[1:] if arg not in options]
 
 def parseCommandLineOptions(cmdLineOptions):
 	"""Parse arguments (a list) into a dictionary
