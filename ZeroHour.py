@@ -20,6 +20,8 @@ TODO : Deal with command line arguments better.
        holds all the values and move the global 
        vars in there as well.
 
+     : Extend to sync Rally and Trello
+
 """
 
 UNDER_DEVELOPMENT = True
@@ -264,8 +266,3 @@ def addTrelloCardWithTasks(card, tasks, trelloID, trelloToken, trelloList, chang
 def addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, trelloList, changeLog):
 	for card in orderedParentCards:
 		addTrelloCardWithTasks(card, trelloCards[card.FormattedID].tasks, trelloID, trelloToken, trelloList, changeLog)
-
-#Unit Testing using doctest  
-if UNDER_DEVELOPMENT and __name__ == '__main__':
-   	import doctest
-   	doctest.testmod()
