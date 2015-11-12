@@ -15,11 +15,7 @@ rally = zerohour.initRally(cmdLineOptions)
 print "Logging changes to change.log..."
 changeLog = open("change.log", 'a')
 
-artifactQuery = zerohour.buildRallyArtifactInclusionQuery(rally, cmdLineOptions['trelloID'], cmdLineOptions['trelloToken'], tBoard)
-tasksForMigration = zerohour.getRallyRallyArtifactList(rally, artifactQuery, 'migration.list')
-trelloCards = zerohour.sortTrelloTasksIntoArtifacts(rally, tasksForMigration)
-orderedParentCards = zerohour.orderCards(rally, trelloCards)
-zerohour.addTrelloCards(orderedParentCards, trelloCards, cmdLineOptions['trelloID'], cmdLineOptions['trelloToken'], tList, changeLog)
+zerohour.syncRallyAndPython(rally, cmdLineOptions['trelloID'], cmdLineOptions['trelloToken'], tBoard)
 
 #FINALIZE
 changeLog.close()
