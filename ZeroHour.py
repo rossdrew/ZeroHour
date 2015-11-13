@@ -79,8 +79,20 @@ def getTrelloBoard(trelloID, trelloToken, trelloUserName, boardName):
 	return tBoards[0]
 
 def getTrelloListsForBoard(trelloID, trelloToken, trelloBoard):
+	"""Return all lists for the given Trello board"""
 	lists = trello.Boards(trelloID, trelloToken).get_list(trelloBoard['id'])
 	return lists
+
+def getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard):
+	"""Return a list of all Trello tickets from all lists for the given board"""
+	lists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
+	cardsInBoard = []
+	for list in lists:
+		cardsInList = trello.Lists(trelloID, trelloToken).get_card(list['id'])
+		print "Adding {} cards for {}".format(len(cardsInList), list['name'])
+		cardsInBoard += cardsInList
+	return cardsInBoard
+
 
 def getTrelloList(trelloID, trelloToken, trelloBoard, trelloListName):
 	"""Return a Trello List object from Trello server"""
@@ -278,16 +290,16 @@ def addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, trell
 	for card in orderedParentCards:
 		addTrelloCardWithTasks(card, trelloCards[card.FormattedID].tasks, trelloID, trelloToken, trelloList, changeLog)
 
-
 def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
 	print "Synching Rally to Trello board {}".format(trelloBoard['name'])
 	#get all Rally tickets 
 	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
 	getRallyRallyArtifactList(rally, artifactQuery, 'rallyArtifact.list')
-	#TODO get all Trello tickets (that's every ticket on a given board, in every list)
+	#get all Trello tickets (that's every ticket on a given board, in every list)
 	lists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
-	for list in lists:
-		print "{} - {}".format(list['id'], list['name'])
+	tickets = getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard)
+
+	print "{} tickets found!".format(len(tickets))
 	#Compare all details
 	#   TODO "Merge" changes...HOW!?!?
 	#TODO Add Rally Artifacts that dont exist in Trello
