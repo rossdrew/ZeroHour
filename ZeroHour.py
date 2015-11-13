@@ -130,7 +130,7 @@ def getUserAndEmailList(rally, trelloID, trelloToken, trelloBoard):
 			[Username (trello) <-- Full Name (Both) --> E-mail (rally)]
 	This is necessary because Trello users can only view their own e-mail addresses"""
 	emailList = dict()
-	all_users = rally.getAllUsers()
+	all_users = rally.getAllUsers() #XXX This call crashes pyral 1.1.1 - Custom pyral changes are needed
 	for user in all_users:
 		rallyName = ("{} {}".format(user.FirstName, user.LastName)).lower()
 		emailList[rallyName] = user.EmailAddress
@@ -221,7 +221,7 @@ def printTrelloCards(trelloCards):
 			print "\t{} : {}".format(task.FormattedID, getRallyArtifactTypeFromID(task.FormattedID))
 	print "***************************************\n"
 
-def sortTrelloTasksIntoArtifacts(rally, cardList = []):
+def sortArtifactsIntoTrelloTasks(rally, cardList = []):
 	"""Return a list of top level TrelloCard objects with associated Trello Tasks sorted into them
 	   Requires a Rally object to make requests on object to figure out WorkItem (parent)"""
 
@@ -290,16 +290,27 @@ def addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, trell
 	for card in orderedParentCards:
 		addTrelloCardWithTasks(card, trelloCards[card.FormattedID].tasks, trelloID, trelloToken, trelloList, changeLog)
 
+def migrateRallyArtifactsToTrello(rally, trelloID, trelloToken, trelloBoard):
+	"""Migrate non-closed Rally artifacts to Trello as Cards (Artifacts) and Checklists (Tasks) if they have a matching user on the given trelloBoard"""
+	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
+	tasksForMigration = getRallyRallyArtifactList(rally, artifactQuery, 'migration.list')
+	trelloCards = sortArtifactsIntoTrelloTasks(rally, tasksForMigration)
+	orderedParentCards = orderCards(rally, trelloCards)
+	zerohour.addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, tList, changeLog)
+
+
 def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
 	print "Synching Rally to Trello board {}".format(trelloBoard['name'])
 	#get all Rally tickets 
 	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
-	getRallyRallyArtifactList(rally, artifactQuery, 'rallyArtifact.list')
+	rallyTasks = getRallyRallyArtifactList(rally, artifactQuery, 'rallyArtifact.list')
+	trelloCards = sortArtifactsIntoTrelloTasks(rally, rallyTasks)
+
 	#get all Trello tickets (that's every ticket on a given board, in every list)
 	lists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
 	tickets = getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard)
 
-	print "{} tickets found!".format(len(tickets))
-	#Compare all details
+	#Compare all details from tickets and trelloCards
+
 	#   TODO "Merge" changes...HOW!?!?
 	#TODO Add Rally Artifacts that dont exist in Trello
