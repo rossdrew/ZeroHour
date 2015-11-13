@@ -1,8 +1,17 @@
-#integration_rally-trello
+#ZeroHour
 
-Experiments and working code for Rally/Trello integration.
+Experiments and working code for Rally/Trello integration.  Functions include:-
 
-rallyToTrelloMigration is currently an under development script to migrate all relevant Rally Artifacts to Trello.  So far it:-
+ - Check which users exist on Rally and Trello
+ - Getting Tasks and Artifacts from Rally and sorting into objects.
+ - Converting HTML in Rally descriptions to Markdown for Trello
+ - Extracting defect type from Rally ID
+ - Extracting Rally ID from Trello Ticket title
+ - Ordering Rally Artifacts by DragAndDropOrder
+
+#migrateRally-Trello.py
+
+  Script to migrate all relevant Rally Artifacts to Trello.  So far it:-
 
  - builds a list of e-mails by comparing developer full names between Rally and Python. <i>(this is necessary as e-mails of users other than the one making requests are not</i>availiable in Trello) 
  - gets all Tasks from Rally that are not complete and are in the user list above
@@ -10,13 +19,17 @@ rallyToTrelloMigration is currently an under development script to migrate all r
  - figures out an order based on Rally DragAndDropOrder
  - adds each of the Rally parent artifacts as a Trello ticket with the Rally tasks as list items in Trello
 
+#synch_RallyToTrello.py
+
+ Script to synch Rally Artifacts with Trello Tickets.  So far it:-
+
+ - Gets list of Rally artifacts and sub-Tasks
+ - Gets a list of Trello tickets
+ - Checks which Artifacts/Tickets exist in both and which only exist in one or the other
+
 #Plans
 
- Next step is to allow two way-syncing so that changes on one reflect on the other.  This raises the issue of HTML->Markdown and back.  html2text does the first step perfectly but I can't find anything to put it back the way it was, the HTML is always changed.
-
- Also
-  - Servers, usernames, passwords all need to be passed in as arguments
-  - Code needs to be cleaned and split up and possibly unit tests extended
+ Create a ZeroHour class to hold config details.
 
 #Issues
 
