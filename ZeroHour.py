@@ -24,10 +24,11 @@ TODO : Deal with command line arguments better.
 
 """
 
-UNDER_DEVELOPMENT = True
-DEBUG_OUTPUT = True
+UNDER_DEVELOPMENT 	= True
+DEBUG_OUTPUT 		= True
 
-RALLY_PREFIX 	= re.compile(r'^[A-Z]*[^[0-9]]*')
+RALLY_PREFIX 		= re.compile(r'^[A-Z]*[^[0-9]]*')
+RALLY_ID_FROM_TRELLO= re.compile(r'^[.]*[^-]*')
 
 def parseCommandLineOptions(cmdLineOptions):
 	"""Parse arguments (a list) into a dictionary
@@ -116,6 +117,14 @@ def getRallyArtifactTypeFromID(FullFormattedID):
 		"""
 
 	return Rally.ARTIFACT_TYPE[re.search(RALLY_PREFIX, FullFormattedID).group(0)]
+
+def extractRallyIDFromTrelloTitle(trelloTitle):
+	"""Return the Rally ID at the start of trelloTitle of the form '[ID] - [...]' or None if not title is not of the correct form"""
+	result = re.search(RALLY_ID_FROM_TRELLO, trelloTitle)
+	if result:
+		return result.group(0).strip()
+	else:
+		return None
 
 def initRally(cmdLineOptions):
 	requiredOptions = {'rallyServer','rallyUser','rallyPassword'}
@@ -298,7 +307,6 @@ def migrateRallyArtifactsToTrello(rally, trelloID, trelloToken, trelloBoard):
 	orderedParentCards = orderCards(rally, trelloCards)
 	zerohour.addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, tList, changeLog)
 
-
 def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
 	print "Synching Rally to Trello board {}".format(trelloBoard['name'])
 	#get all Rally tickets 
@@ -311,6 +319,16 @@ def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
 	tickets = getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard)
 
 	#Compare all details from tickets and trelloCards
+	for ticket in tickets:
+		rallyID = extractRallyIDFromTrelloTitle(ticket['name'])
+
+		if rallyID:
+			if rallyID in trelloCards:
+				print "{} Found! with {} Tasks".format(rallyID, len(trelloCards[rallyID].tasks))
+			else:
+				print "{} NOT Found!".format(rallyID)
+		else:
+			print "No Rally ID found for Trello card '{}'".format(ticket['name'])
 
 	#   TODO "Merge" changes...HOW!?!?
 	#TODO Add Rally Artifacts that dont exist in Trello
