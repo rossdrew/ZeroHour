@@ -90,7 +90,7 @@ def getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard):
 	cardsInBoard = []
 	for list in lists:
 		cardsInList = trello.Lists(trelloID, trelloToken).get_card(list['id'])
-		print "Adding {} cards for {}".format(len(cardsInList), list['name'])
+		print "{} cards found in Trello list '{}'".format(len(cardsInList), list['name'])
 		cardsInBoard += cardsInList
 	return cardsInBoard
 
@@ -312,23 +312,33 @@ def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
 	#get all Rally tickets 
 	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
 	rallyTasks = getRallyRallyArtifactList(rally, artifactQuery, 'rallyArtifact.list')
-	trelloCards = sortArtifactsIntoTrelloTasks(rally, rallyTasks)
+	trelloCardsFromRally = sortArtifactsIntoTrelloTasks(rally, rallyTasks)
 
 	#get all Trello tickets (that's every ticket on a given board, in every list)
 	lists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
-	tickets = getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard)
+	trelloTickets = getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard)
 
-	#Compare all details from tickets and trelloCards
-	for ticket in tickets:
+	#Compare all details from trelloTickets and trelloCardsFromRally
+	#TODO This is causing duplicates, why?!?!  Because I've added it more than once?!
+	synchFile = open("synch.list", "w")
+	trelloTicketIDs = []
+	for ticket in trelloTickets:
 		rallyID = extractRallyIDFromTrelloTitle(ticket['name'])
 
 		if rallyID:
-			if rallyID in trelloCards:
-				print "{} Found! with {} Tasks".format(rallyID, len(trelloCards[rallyID].tasks))
+			trelloTicketIDs += rallyID #if it doesn't have a rally ID, there's no point synching it
+			if rallyID in trelloCardsFromRally:
+				synchFile.write("{}\n".format(rallyID))
 			else:
-				print "{} NOT Found!".format(rallyID)
+				synchFile.write(">>>{}\n".format(rallyID))
 		else:
-			print "No Rally ID found for Trello card '{}'".format(ticket['name'])
+			print "No valid Rally ID found for Trello card '{}'".format(ticket['name'])
 
+
+	for rallyArtifact in trelloCardsFromRally:
+		if rallyArtifact not in trelloTicketIDs:
+			synchFile.write("<<<{}\n".format(rallyArtifact))
+
+	synchFile.close()
 	#   TODO "Merge" changes...HOW!?!?
 	#TODO Add Rally Artifacts that dont exist in Trello
