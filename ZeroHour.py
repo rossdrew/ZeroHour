@@ -21,10 +21,11 @@ TODO : Deal with command line arguments better.
        vars in there as well.
 
      : Extend to sync Rally and Trello
-         - Deal with the difference in comments (HTML > Markdown)
+         - Deal with the difference in comments (HTML (fancy Rally type) > Markdown > HTML (no fancy Rally type))
          - Figure out a strategy to deal with duplicates in Trello 
          - What to do about comments (Rally only has a comments box, not seperate comments)
          - Optimise this script, it's run time is not fast enough for constant synching 
+         - If there are changes, what side of the change is new?
 
 """
 
