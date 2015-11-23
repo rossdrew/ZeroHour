@@ -226,12 +226,12 @@ class TrelloCard:
 	def addTask(self, task):
 		self.tasks.append(task)
 
-def printTrelloCards(trelloCards):
+def printtrelloCardsFromRally(trelloCardsFromRally):
 	"""Output heirachical list provided trello cards"""
 	print "\n****** WorkProducts and Children ******"
-	for cardID in trelloCards:
-		print "{} : {}".format(trelloCards[cardID].cardID, getRallyArtifactTypeFromID(cardID))
-		for task in trelloCards[cardID].tasks:
+	for cardID in trelloCardsFromRally:
+		print "{} : {}".format(trelloCardsFromRally[cardID].cardID, getRallyArtifactTypeFromID(cardID))
+		for task in trelloCardsFromRally[cardID].tasks:
 			print "\t{} : {}".format(task.FormattedID, getRallyArtifactTypeFromID(task.FormattedID))
 	print "***************************************\n"
 
@@ -240,22 +240,22 @@ def sortArtifactsIntoTrelloTasks(rally, cardList = []):
 	   Requires a Rally object to make requests on object to figure out WorkItem (parent)"""
 
 	print "Sorting Trello Tasks into parent Artifacts/Cards"
-	trelloCards = dict()
+	trelloCardsFromRally = dict()
 	for id in cardList:
 		items = rally.get('Task', fetch=True, query="({})".format("FormattedID = {}".format(id)))
 		if items.resultCount is 1:
 			rallyItem = items.next()
 			parentFormattedID = getattr(rallyItem.WorkProduct, 'FormattedID')
 			
-			if parentFormattedID not in trelloCards:
+			if parentFormattedID not in trelloCardsFromRally:
 				if DEBUG_OUTPUT: print "Creating card {}".format(parentFormattedID)
 				trelloCard = TrelloCard(parentFormattedID)
-				trelloCards[parentFormattedID] = trelloCard
+				trelloCardsFromRally[parentFormattedID] = trelloCard
 
 			if DEBUG_OUTPUT: print "\tAdding {} to card {}".format(rallyItem.FormattedID, parentFormattedID)
-			trelloCards[parentFormattedID].addTask(rallyItem)
-	if DEBUG_OUTPUT: printTrelloCards(trelloCards)
-	return trelloCards
+			trelloCardsFromRally[parentFormattedID].addTask(rallyItem)
+	if DEBUG_OUTPUT: printtrelloCardsFromRally(trelloCardsFromRally)
+	return trelloCardsFromRally
 
 def orderCards(rally, cards):
 	"""Return a DragAndDropRank ordered array of TrelloCard (cards) ID"""
@@ -271,16 +271,16 @@ def orderCards(rally, cards):
 	return orderedParentCards
 
 def addTrelloTasklist(trelloCard, tasks, trelloID, trelloToken):
-	remoteTrelloCards = trello.Cards(trelloID, trelloToken)
+	remotetrelloCardsFromRally = trello.Cards(trelloID, trelloToken)
 	trelloChecklists = trello.Checklists(trelloID, trelloToken)
-	taskList = remoteTrelloCards.new_checklist(trelloCard['id'], None)
+	taskList = remotetrelloCardsFromRally.new_checklist(trelloCard['id'], None)
 	trelloChecklists.update_name(taskList['id'], "Tasks")
 	for task in tasks:
 		trelloChecklists.new_checkItem(taskList['id'], task.Name)
 
 def addTrelloCard(cardTitle, description, trelloID, trelloToken, trelloList):
-	remoteTrelloCards = trello.Cards(trelloID, trelloToken)
-	cardOnTrello = remoteTrelloCards.new(cardTitle, trelloList['id'], description)
+	remotetrelloCardsFromRally = trello.Cards(trelloID, trelloToken)
+	cardOnTrello = remotetrelloCardsFromRally.new(cardTitle, trelloList['id'], description)
 	return cardOnTrello
 
 def addTrelloCardWithTasks(card, tasks, trelloID, trelloToken, trelloList, changeLog):
@@ -300,41 +300,51 @@ def addTrelloCardWithTasks(card, tasks, trelloID, trelloToken, trelloList, chang
 		print message
 		changeLog.write("{} ERROR adding trello card {}: {}\n\t{}\n".format(datetime.datetime.now(), card.FormattedID, type(ex).__name__, ex.args))
 	
-def addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, trelloList, changeLog):
+def addtrelloCardsFromRally(orderedParentCards, trelloCardsFromRally, trelloID, trelloToken, trelloList, changeLog):
 	for card in orderedParentCards:
-		addTrelloCardWithTasks(card, trelloCards[card.FormattedID].tasks, trelloID, trelloToken, trelloList, changeLog)
+		addTrelloCardWithTasks(card, trelloCardsFromRally[card.FormattedID].tasks, trelloID, trelloToken, trelloList, changeLog)
 
 def migrateRallyArtifactsToTrello(rally, trelloID, trelloToken, trelloBoard):
 	"""Migrate non-closed Rally artifacts to Trello as Cards (Artifacts) and Checklists (Tasks) if they have a matching user on the given trelloBoard"""
 	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
 	tasksForMigration = getRallyRallyArtifactList(rally, artifactQuery, 'migration.list')
-	trelloCards = sortArtifactsIntoTrelloTasks(rally, tasksForMigration)
-	orderedParentCards = orderCards(rally, trelloCards)
-	zerohour.addTrelloCards(orderedParentCards, trelloCards, trelloID, trelloToken, tList, changeLog)
+	trelloCardsFromRally = sortArtifactsIntoTrelloTasks(rally, tasksForMigration)
+	orderedParentCards = orderCards(rally, trelloCardsFromRally)
+	zerohour.addtrelloCardsFromRally(orderedParentCards, trelloCardsFromRally, trelloID, trelloToken, tList, changeLog)
 
 def syncRallyAndPython(rally, trelloID, trelloToken, trelloBoard):
 	print "Synching Rally to Trello board {}".format(trelloBoard['name'])
 	#get all Rally tickets 
 	artifactQuery = buildRallyArtifactInclusionQuery(rally, trelloID, trelloToken, trelloBoard)
 	rallyTasks = getRallyRallyArtifactList(rally, artifactQuery, 'rallyArtifact.list')
-	trelloCards = sortArtifactsIntoTrelloTasks(rally, rallyTasks)
+	trelloCardsFromRally = sortArtifactsIntoTrelloTasks(rally, rallyTasks)
 
 	#get all Trello tickets (that's every ticket on a given board, in every list)
 	lists = getTrelloListsForBoard(trelloID, trelloToken, trelloBoard)
 	tickets = getAllTrelloTicketsForBoard(trelloID, trelloToken, trelloBoard)
 
-	#Compare all details from tickets and trelloCards
+	#Compare all details from tickets and trelloCardsFromRally
+	synchFile = open("synch.list", "w")
+	trelloTicketIDs = []
 	for ticket in tickets:
 		rallyID = extractRallyIDFromTrelloTitle(ticket['name'])
 
 		if rallyID:
-			if rallyID in trelloCard s:
-				print "{} Found! with {} Tasks".format(rallyID, len(trelloCards[rallyID].tasks))
+			trelloTicketIDs += rallyID #if it doesn't have a rally ID, there's no point synching it
+			if rallyID in trelloCardsFromRally:
+				synchFile.write("{}\n".format(rallyID))
+				print "{} Found! with {} Tasks".format(rallyID, len(trelloCardsFromRally[rallyID].tasks))
 			else:
+				synchFile.write(">>>{}\n".format(rallyID))
 				print "{} NOT Found!".format(rallyID)
 		else:
 			print "No Rally ID found for Trello card '{}'".format(ticket['name'])
 
+	for rallyArtifact in trelloCardsFromRally:
+		if rallyArtifact not in trelloTicketIDs:
+			synchFile.write("<<<{}\n".format(rallyArtifact))
+
+	synchFile.close()
 	# TODO Add non-existing Artifacts/Cardss
 	# TODO "Merge" changes...HOW!?!?
 	#TODO Add Rally Artifacts that dont exist in Trello
