@@ -33,6 +33,8 @@ Experiments and working code for Rally/Trello integration.  Functions include:-
 
 #Issues
 
+
+###Pyral Version
  pyral (1.1.1) doesn't support Python 3 and has an existing bug where retrieving a list of Rally users throws an error (which for some reason we get with every user once before it succeeds), I've added a fix for this on the pyral repo and <a href="https://github.com/RallyTools/RallyRestToolkitForPython/pull/70">submitted a pull request</a> but as it stands, a custom pyral install is required.
  The change is in <i>restapi.py</i> around line 575 where UserProfile is accessed
 
@@ -46,4 +48,5 @@ Experiments and working code for Rally/Trello integration.  Functions include:-
             else:
 </code>
 
+###Task Centric Migration
  another issue is that this script is Task-centric, meaning any artifact that has no corresponding tasks, wont be included.
