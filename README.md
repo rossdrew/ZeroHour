@@ -1,4 +1,4 @@
-#ZeroHour
+# ZeroHour
 
 Experiments and working code for Rally/Trello integration.  Functions include:-
 
@@ -9,7 +9,7 @@ Experiments and working code for Rally/Trello integration.  Functions include:-
  - Extracting Rally ID from Trello Ticket title
  - Ordering Rally Artifacts by DragAndDropOrder
 
-#migrateRally-Trello.py
+# migrateRally-Trello.py
 
   Script to migrate all relevant Rally Artifacts to Trello.  So far it:-
 
@@ -19,7 +19,7 @@ Experiments and working code for Rally/Trello integration.  Functions include:-
  - figures out an order based on Rally DragAndDropOrder
  - adds each of the Rally parent artifacts as a Trello ticket with the Rally tasks as list items in Trello
 
-#synch_RallyToTrello.py
+# synch_RallyToTrello.py
 
  Script to synch Rally Artifacts with Trello Tickets.  So far it:-
 
@@ -27,14 +27,14 @@ Experiments and working code for Rally/Trello integration.  Functions include:-
  - Gets a list of Trello tickets
  - Checks which Artifacts/Tickets exist in both and which only exist in one or the other
 
-#Plans
+# Plans
 
  Create a ZeroHour class to hold config details.
 
-#Issues
+# Issues
 
 
-###Pyral Version
+### Pyral Version
  pyral (1.1.1) doesn't support Python 3 and has an existing bug where retrieving a list of Rally users throws an error (which for some reason we get with every user once before it succeeds), I've added a fix for this on the pyral repo and <a href="https://github.com/RallyTools/RallyRestToolkitForPython/pull/70">submitted a pull request</a> but as it stands, a custom pyral install is required.
  The change is in <i>restapi.py</i> around line 575 where UserProfile is accessed
 
